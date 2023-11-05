@@ -258,7 +258,7 @@ endmodule
 ```
 
 # 4-to-1 Multiplexer (MUX) Implementation in Verilog
-```
+
 ## Gate-Level Modeling
 
 ```verilog
