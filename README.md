@@ -1114,3 +1114,142 @@ module bcd_to_seven_segment_behavioral(input [3:0] BCD, output reg [6:0] seg_dis
 endmodule
 ```
 
+Certainly! Here's the Verilog code for a 4-bit Ring Counter implemented using behavioral modeling, along with its testbench:
+
+```verilog
+module ring_counter_4bit_behavioral(input clk, input rst, output reg [3:0] count);
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            count <= 4'b0001;
+        end else begin
+            count <= {count[2:0], count[3]};
+        end
+    end
+endmodule
+```
+
+Testbench for the 4-bit Ring Counter:
+
+```verilog
+module testbench_ring_counter_4bit_behavioral();
+    reg clk, rst;
+    wire [3:0] count;
+
+    // Instantiate the ring counter
+    ring_counter_4bit_behavioral uut (clk, rst, count);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("ring_counter_4bit_behavioral.vcd");
+        $dumpvars(0, testbench_ring_counter_4bit_behavioral);
+
+        // Initialize signals
+        clk = 0; rst = 0;
+
+        // Reset and check initial value
+        rst = 1; #10; rst = 0; #10;
+        if (count !== 4'b0001) $fatal("Initial value incorrect");
+
+        // Count for a few cycles
+        #10; if (count !== 4'b0010) $fatal("Value after 1st clock cycle incorrect");
+        #10; if (count !== 4'b0100) $fatal("Value after 2nd clock cycle incorrect");
+        #10; if (count !== 4'b1000) $fatal("Value after 3rd clock cycle incorrect");
+        #10; if (count !== 4'b0001) $fatal("Value after 4th clock cycle incorrect");
+        #10; if (count !== 4'b0010) $fatal("Value after 5th clock cycle incorrect");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+In this example, the 4-bit Ring Counter is implemented using behavioral modeling. It consists of a module named `ring_counter_4bit_behavioral` with an input clock (`clk`), reset (`rst`), and a 4-bit output counter (`count`). The counter shifts its bits to the left on each clock cycle, effectively creating a ring-like behavior.
+
+The testbench applies clock and reset signals and checks the counter's behavior by monitoring its output. The simulation generates a VCD file for waveform viewing.
+
+Save the module and testbench in separate files (e.g., `ring_counter_4bit_behavioral.v` and `testbench_ring_counter_4bit_behavioral.v`). Use a simulator like XSIM or ModelSim to run the testbench and observe the counter's behavior.
+
+Certainly! Below is the Verilog code for a 4-bit down counter implemented using behavioral modeling. It includes a clock (`clk`), reset (`rst`), and a 4-bit output counter (`count`). The counter counts down by 1 on each rising edge of the clock, and can be reset to its initial value by asserting the reset signal.
+
+```verilog
+module down_counter_4bit_behavioral(input clk, input rst, output reg [3:0] count);
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            count <= 4'b1111;
+        end else begin
+            count <= count - 1;
+        end
+    end
+endmodule
+```
+
+Next, we'll implement the 7-segment display decoder. The display will be updated based on the value of the 4-bit counter.
+
+```verilog
+module bcd_to_seven_segment_behavioral(input [3:0] BCD, output reg [6:0] seg_display);
+    always @* begin
+        case(BCD)
+            4'b0000: seg_display = 7'b1000000; // 0
+            4'b0001: seg_display = 7'b1111001; // 1
+            4'b0010: seg_display = 7'b0100100; // 2
+            4'b0011: seg_display = 7'b0110000; // 3
+            4'b0100: seg_display = 7'b0011001; // 4
+            4'b0101: seg_display = 7'b0010010; // 5
+            4'b0110: seg_display = 7'b0000010; // 6
+            4'b0111: seg_display = 7'b1111000; // 7
+            4'b1000: seg_display = 7'b0000000; // 8
+            4'b1001: seg_display = 7'b0010000; // 9
+            default: seg_display = 7'b1111111; // Default case (All segments off)
+        endcase
+    end
+endmodule
+```
+
+Now, let's create the testbench that will provide clock and reset signals to the counter and display the count on a 7-segment display.
+
+```verilog
+module testbench_down_counter_7seg_behavioral();
+    reg clk, rst;
+    wire [3:0] count;
+    reg [6:0] seg_display;
+
+    // Instantiate the down counter
+    down_counter_4bit_behavioral uut_counter (clk, rst, count);
+
+    // Instantiate the 7-segment display decoder
+    bcd_to_seven_segment_behavioral uut_7seg (count, seg_display);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("down_counter_7seg_behavioral.vcd");
+        $dumpvars(0, testbench_down_counter_7seg_behavioral);
+
+        // Initialize signals
+        clk = 0; rst = 0;
+
+        // Reset and check initial value
+        rst = 1; #10; rst = 0; #10;
+        if (count !== 4'b1111) $fatal("Initial value incorrect");
+
+        // Count down for a few cycles
+        #10; if (count !== 4'b1110) $fatal("Value after 1st clock cycle incorrect");
+        #10; if (count !== 4'b1101) $fatal("Value after 2nd clock cycle incorrect");
+        #10; if (count !== 4'b1100) $fatal("Value after 3rd clock cycle incorrect");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+In this testbench, we apply clock and reset signals, and monitor the counter's value. We also instantiate the 7-segment display decoder to display the count. The simulation generates a VCD file for waveform viewing.
+
+Save the modules and testbench in separate files (e.g., `down_counter_4bit_behavioral.v`, `bcd_to_seven_segment_behavioral.v`, `testbench_down_counter_7seg_behavioral.v`). Use a simulator like XSIM or ModelSim to run the testbench and observe the counter's behavior on the 7-segment display.
+
+
