@@ -1252,4 +1252,470 @@ In this testbench, we apply clock and reset signals, and monitor the counter's v
 
 Save the modules and testbench in separate files (e.g., `down_counter_4bit_behavioral.v`, `bcd_to_seven_segment_behavioral.v`, `testbench_down_counter_7seg_behavioral.v`). Use a simulator like XSIM or ModelSim to run the testbench and observe the counter's behavior on the 7-segment display.
 
+Certainly! Below are the Verilog modules for the components you requested, implemented using behavioral modeling, along with their respective testbenches:
 
+### 1. Shift Register
+
+```verilog
+module shift_register_behavioral(input clk, input rst_n, input [7:0] data_in, output reg [7:0] data_out);
+    reg [7:0] shift_reg;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            shift_reg <= 8'b0;
+        end else begin
+            shift_reg <= {shift_reg[6:0], data_in};
+        end
+    end
+
+    assign data_out = shift_reg;
+endmodule
+```
+
+### Testbench for Shift Register
+
+```verilog
+module testbench_shift_register_behavioral();
+    reg clk, rst_n;
+    reg [7:0] data_in;
+    wire [7:0] data_out;
+
+    // Instantiate the shift register
+    shift_register_behavioral uut (clk, rst_n, data_in, data_out);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("shift_register_behavioral.vcd");
+        $dumpvars(0, testbench_shift_register_behavioral);
+
+        // Initialize signals
+        clk = 0; rst_n = 1; data_in = 8'b10101010;
+
+        // Reset and check initial value
+        rst_n = 0; #10; rst_n = 1; #10;
+        if (data_out !== 8'b00000000) $fatal("Initial value incorrect");
+
+        // Shift in data
+        data_in = 8'b11110000; #10;
+        if (data_out !== 8'b00000001) $fatal("Value after 1st shift cycle incorrect");
+        data_in = 8'b00111100; #10;
+        if (data_out !== 8'b00000011) $fatal("Value after 2nd shift cycle incorrect");
+        data_in = 8'b00001111; #10;
+        if (data_out !== 8'b00000110) $fatal("Value after 3rd shift cycle incorrect");
+        data_in = 8'b10000000; #10;
+        if (data_out !== 8'b00001100) $fatal("Value after 4th shift cycle incorrect");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+### 2. Shift Register with Parallel Load
+
+```verilog
+module shift_register_parallel_load_behavioral(input clk, input rst_n, input [7:0] data_in,
+                                               input load, output reg [7:0] data_out);
+    reg [7:0] shift_reg;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            shift_reg <= 8'b0;
+        end else if (load) begin
+            shift_reg <= data_in;
+        end else begin
+            shift_reg <= {shift_reg[6:0], data_in};
+        end
+    end
+
+    assign data_out = shift_reg;
+endmodule
+```
+
+### Testbench for Shift Register with Parallel Load
+
+```verilog
+module testbench_shift_register_parallel_load_behavioral();
+    reg clk, rst_n, load;
+    reg [7:0] data_in;
+    wire [7:0] data_out;
+
+    // Instantiate the shift register with parallel load
+    shift_register_parallel_load_behavioral uut (clk, rst_n, data_in, load, data_out);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("shift_register_parallel_load_behavioral.vcd");
+        $dumpvars(0, testbench_shift_register_parallel_load_behavioral);
+
+        // Initialize signals
+        clk = 0; rst_n = 1; load = 0; data_in = 8'b10101010;
+
+        // Reset and check initial value
+        rst_n = 0; #10; rst_n = 1; #10;
+        if (data_out !== 8'b00000000) $fatal("Initial value incorrect");
+
+        // Load data
+        load = 1; #10; load = 0; #10;
+        if (data_out !== 8'b10101010) $fatal("Value after 1st load cycle incorrect");
+
+        // Shift in data
+        data_in = 8'b11110000; #10;
+        if (data_out !== 8'b01010101) $fatal("Value after 1st shift cycle incorrect");
+        data_in = 8'b00111100; #10;
+        if (data_out !== 8'b10001111) $fatal("Value after 2nd shift cycle incorrect");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+### 3. 8-bit Johnson Counter
+
+```verilog
+module johnson_counter_8bit_behavioral(input clk, input rst_n, output reg [7:0] count);
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            count <= 8'b00000001;
+        end else begin
+            count <= {count[6:0], ~count[7]};
+        end
+    end
+endmodule
+```
+
+### Testbench for 8-bit Johnson Counter
+
+```verilog
+module testbench_johnson_counter_8bit_behavioral();
+    reg clk, rst_n;
+    wire [7:0] count;
+
+    // Instantiate the 8-bit Johnson counter
+    johnson_counter_8bit_behavioral uut (clk, rst_n, count);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("johnson_counter_8bit_behavioral.vcd");
+        $dumpvars(0, testbench_johnson_counter_8bit_behavioral);
+
+        // Initialize signals
+        clk = 0; rst_n = 1;
+
+        // Reset and check initial value
+        rst_n = 0; #10; rst_n = 1; #10;
+        if (count !== 8'b00000001) $fatal("Initial value incorrect");
+
+        // Cycle through Johnson counter states
+        #10; if (count !== 8'b00000010) $fatal("Value after 1st clock cycle incorrect");
+        #10; if (count !== 8'b00000100) $fatal("Value after 2nd clock cycle incorrect");
+        #10; if (count !== 8'b00001000) $fatal("Value after 3rd clock cycle incorrect");
+        #10; if (count !== 8'b00010000) $fatal("Value after 4th clock cycle incorrect");
+        #10; if (count !== 8'b00100000) $fatal("Value after 5th clock cycle incorrect");
+        #10; if (count !== 8'b01000000) $fatal("Value after 6th clock cycle incorrect");
+        #
+
+10; if (count !== 8'b10000000) $fatal("Value after 7th clock cycle incorrect");
+        #10; if (count !== 8'b00000001) $fatal("Value after 8th clock cycle incorrect");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+### 4. Universal Shift Register
+
+```verilog
+module universal_shift_register_behavioral(input clk, input rst_n, input shift_left, input shift_right,
+                                          input [7:0] data_in, output reg [7:0] data_out);
+    reg [7:0] shift_reg;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            shift_reg <= 8'b0;
+        end else begin
+            if (shift_left) begin
+                shift_reg <= {shift_reg[6:0], data_in};
+            end else if (shift_right) begin
+                shift_reg <= {data_in, shift_reg[7:1]};
+            end
+        end
+    end
+
+    assign data_out = shift_reg;
+endmodule
+```
+
+### Testbench for Universal Shift Register
+
+```verilog
+module testbench_universal_shift_register_behavioral();
+    reg clk, rst_n, shift_left, shift_right;
+    reg [7:0] data_in;
+    wire [7:0] data_out;
+
+    // Instantiate the universal shift register
+    universal_shift_register_behavioral uut (clk, rst_n, shift_left, shift_right, data_in, data_out);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("universal_shift_register_behavioral.vcd");
+        $dumpvars(0, testbench_universal_shift_register_behavioral);
+
+        // Initialize signals
+        clk = 0; rst_n = 1; shift_left = 0; shift_right = 0; data_in = 8'b10101010;
+
+        // Reset and check initial value
+        rst_n = 0; #10; rst_n = 1; #10;
+        if (data_out !== 8'b00000000) $fatal("Initial value incorrect");
+
+        // Shift left
+        shift_left = 1; data_in = 8'b11110000; #10;
+        if (data_out !== 8'b10101010) $fatal("Value after shift left incorrect");
+
+        // Shift right
+        shift_left = 0; shift_right = 1; data_in = 8'b00001111; #10;
+        if (data_out !== 8'b11111010) $fatal("Value after shift right incorrect");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+### 5. Random Number Generation using Shift Register
+
+```verilog
+module random_number_generator_behavioral(input clk, input rst_n, output reg [7:0] random_number);
+    reg [7:0] shift_reg;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            shift_reg <= 8'b0;
+        end else begin
+            shift_reg <= {shift_reg[6:0], shift_reg[7] ^ shift_reg[3]};
+        end
+    end
+
+    assign random_number = shift_reg;
+endmodule
+```
+
+### Testbench for Random Number Generator using Shift Register
+
+```verilog
+module testbench_random_number_generator_behavioral();
+    reg clk, rst_n;
+    wire [7:0] random_number;
+
+    // Instantiate the random number generator
+    random_number_generator_behavioral uut (clk, rst_n, random_number);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("random_number_generator_behavioral.vcd");
+        $dumpvars(0, testbench_random_number_generator_behavioral);
+
+        // Initialize signals
+        clk = 0; rst_n = 1;
+
+        // Reset and check initial value
+        rst_n = 0; #10; rst_n = 1; #10;
+        if (random_number !== 8'b00000000) $fatal("Initial value incorrect");
+
+        // Generate random numbers
+        #10; // Random number changes over time, no specific check
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+Feel free to save each module in separate files (e.g., `shift_register_behavioral.v`, `shift_register_parallel_load_behavioral.v`, etc.) and their respective testbenches. Use a simulator like XSIM or ModelSim to run the testbenches and observe the behavior of each component.
+
+Certainly! Below are the Verilog modules for the components you requested, along with their respective testbenches:
+
+### 1. N-bit Full Adder
+
+```verilog
+module n_bit_full_adder(input [N-1:0] A, input [N-1:0] B, input Cin, output [N:0] Sum, output Cout);
+    assign Sum = A + B + Cin;
+    assign Cout = (A[N-1] & B[N-1]) | (A[N-1] & Cin) | (B[N-1] & Cin);
+endmodule
+```
+
+### Testbench for N-bit Full Adder
+
+```verilog
+module testbench_n_bit_full_adder();
+    reg [3:0] A, B;
+    reg Cin;
+    wire [4:0] Sum;
+    wire Cout;
+
+    // Instantiate the 4-bit full adder
+    n_bit_full_adder uut (A, B, Cin, Sum, Cout);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("n_bit_full_adder.vcd");
+        $dumpvars(0, testbench_n_bit_full_adder);
+
+        // Test case 1
+        A = 4'b0101; B = 4'b0011; Cin = 0; #10;
+        if (Sum !== 5'b10000 || Cout !== 1) $fatal("Test case 1 failed");
+
+        // Test case 2
+        A = 4'b1101; B = 4'b1101; Cin = 1; #10;
+        if (Sum !== 5'b11111 || Cout !== 1) $fatal("Test case 2 failed");
+
+        // Test case 3
+        A = 4'b1010; B = 4'b0110; Cin = 1; #10;
+        if (Sum !== 5'b10001 || Cout !== 1) $fatal("Test case 3 failed");
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+### 2. Clock Divider
+
+```verilog
+module clock_divider(input clk, output reg clk_out);
+    reg [24:0] count;
+
+    always @(posedge clk) begin
+        count <= count + 1;
+        if (count == Divide_factor) begin
+            clk_out <= ~clk_out;
+            count <= 0;
+        end
+    end
+
+    initial begin
+        count <= 0;
+    end
+endmodule
+```
+
+### Testbench for Clock Divider
+
+```verilog
+module testbench_clock_divider();
+    reg clk;
+    wire clk_out;
+
+    // Define clock frequency parameters
+    parameter freq_in = 50_000_000; // 50 MHz
+    parameter freq_out = 1; // 1 Hz
+    parameter Divide_factor = freq_in / (2*freq_out);
+
+    // Instantiate the clock divider
+    clock_divider uut (clk, clk_out);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("clock_divider.vcd");
+        $dumpvars(0, testbench_clock_divider);
+
+        // Generate clock pulses
+        #5_000; // Run for 100 ms
+
+        // Finish simulation
+        $finish;
+    end
+
+    // Generate 50 MHz clock
+    always #10 clk = ~clk;
+endmodule
+```
+
+### 3. Synchronous vs. Asynchronous Reset
+
+#### Synchronous Reset Behavioral Model
+
+```verilog
+module synchronous_reset_behavioral(input clk, input rst_n, output reg Q);
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            Q <= 1'b0;
+        end else begin
+            // Your logic here
+        end
+    end
+endmodule
+```
+
+#### Asynchronous Reset Behavioral Model
+
+```verilog
+module asynchronous_reset_behavioral(input clk, input rst_n, output reg Q);
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            Q <= 1'b0;
+        end else begin
+            // Your logic here
+        end
+    end
+endmodule
+```
+
+### Testbench for Synchronous vs. Asynchronous Reset
+
+```verilog
+module testbench_reset_behavioral();
+    reg clk, rst_n;
+    wire Q;
+
+    // Instantiate the reset module (synchronous or asynchronous)
+    // Replace `synchronous_reset_behavioral` with `asynchronous_reset_behavioral` for testing the asynchronous reset
+    synchronous_reset_behavioral uut (clk, rst_n, Q);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("reset_behavioral.vcd");
+        $dumpvars(0, testbench_reset_behavioral);
+
+        // Initialize signals
+        clk = 0; rst_n = 1;
+
+        // Reset and check behavior
+        rst_n = 0; #10;
+        if (Q !== 1'b0) $fatal("Reset behavior incorrect");
+
+        // Allow some time
+        #10;
+
+        // Release reset and check behavior
+        rst_n = 1; #10;
+        // Your checks here
+
+        // Finish simulation
+        $finish;
+    end
+endmodule
+```
+
+Please replace the comment `// Your logic here` in the synchronous and asynchronous reset modules with your specific logic for each case. Additionally, adjust the testbench to include your specific checks for the behavior after the reset is released.
