@@ -379,7 +379,7 @@ endmodule
 
 Certainly! Here's the Markdown (.md) file containing Verilog code for a 2-to-4 decoder implemented using gate-level, dataflow, and behavioral modeling, along with their respective testbenches.
 
-```markdown
+
 # 2-to-4 Decoder Implementation in Verilog
 
 ## Gate-Level Modeling
