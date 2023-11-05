@@ -305,6 +305,7 @@ endmodule
 module mux_dataflow(input [3:0] D, input [1:0] S, output Y);
     assign Y = (S[1] & S[0]) ? D[3] : (S[1] & ~S[0]) ? D[2] : (~S[1] & S[0]) ? D[1] : D[0];
     // if ? (__) : else (__)
+    // Cond_exp ? true_exp : false_exp
 endmodule
 ```
 
@@ -376,3 +377,440 @@ module testbench_mux_behavioral();
 endmodule
 ```
 
+Certainly! Here's the Markdown (.md) file containing Verilog code for a 2-to-4 decoder implemented using gate-level, dataflow, and behavioral modeling, along with their respective testbenches.
+
+```markdown
+# 2-to-4 Decoder Implementation in Verilog
+
+## Gate-Level Modeling
+
+```verilog
+module decoder_2to4_gate_level(input [1:0] A, output [3:0] Y);
+    wire w0, w1, w2, w3;
+
+    and gate1 (w0, ~A[0], ~A[1]);
+    and gate2 (w1, ~A[0], A[1]);
+    and gate3 (w2, A[0], ~A[1]);
+    and gate4 (w3, A[0], A[1]);
+
+    assign Y = {w3, w2, w1, w0};
+endmodule
+```
+
+### Gate-Level Testbench
+
+```verilog
+module testbench_gate_level_decoder();
+    reg [1:0] A;
+    wire [3:0] Y;
+
+    // Instantiate the decoder
+    decoder_2to4_gate_level uut (A, Y);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("gate_level_decoder.vcd");
+        $dumpvars(0, testbench_gate_level_decoder);
+
+        A = 2'b00; #10;
+        A = 2'b01; #10;
+        A = 2'b10; #10;
+        A = 2'b11; #10;
+
+        $finish;
+    end
+endmodule
+```
+
+## Dataflow Modeling
+
+```verilog
+module decoder_2to4_dataflow(input [1:0] A, output [3:0] Y);
+    assign Y[0] = ~A[0] & ~A[1];
+    assign Y[1] = ~A[0] & A[1];
+    assign Y[2] = A[0] & ~A[1];
+    assign Y[3] = A[0] & A[1];
+endmodule
+```
+
+### Dataflow Testbench
+
+```verilog
+module testbench_dataflow_decoder();
+    reg [1:0] A;
+    wire [3:0] Y;
+
+    // Instantiate the decoder
+    decoder_2to4_dataflow uut (A, Y);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("dataflow_decoder.vcd");
+        $dumpvars(0, testbench_dataflow_decoder);
+
+        A = 2'b00; #10;
+        A = 2'b01; #10;
+        A = 2'b10; #10;
+        A = 2'b11; #10;
+
+        $finish;
+    end
+endmodule
+```
+
+## Behavioral Modeling
+
+```verilog
+module decoder_2to4_behavioral(input [1:0] A, output [3:0] Y);
+    always @* begin
+        Y[0] = ~A[0] & ~A[1];
+        Y[1] = ~A[0] & A[1];
+        Y[2] = A[0] & ~A[1];
+        Y[3] = A[0] & A[1];
+    end
+endmodule
+```
+
+### Behavioral Testbench
+
+```verilog
+module testbench_behavioral_decoder();
+    reg [1:0] A;
+    wire [3:0] Y;
+
+    // Instantiate the decoder
+    decoder_2to4_behavioral uut (A, Y);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("behavioral_decoder.vcd");
+        $dumpvars(0, testbench_behavioral_decoder);
+
+        A = 2'b00; #10;
+        A = 2'b01; #10;
+        A = 2'b10; #10;
+        A = 2'b11; #10;
+
+        $finish;
+    end
+endmodule
+```
+
+Certainly! Below is the Verilog code for a parity generator implemented using dataflow modeling:
+
+```verilog
+module parity_generator_dataflow(input [7:0] data, output P);
+    assign P = ^data;
+endmodule
+```
+
+In this code, we define a module named `parity_generator_dataflow` with an 8-bit input `data` and a single-bit output `P`. The `^` operator performs a bitwise XOR operation on all the bits in `data`, generating the parity bit `P`.
+
+Here's a simple testbench to verify the functionality of the parity generator:
+
+```verilog
+module testbench_parity_generator();
+    reg [7:0] data;
+    wire P;
+
+    // Instantiate the parity generator
+    parity_generator_dataflow uut (data, P);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("parity_generator.vcd");
+        $dumpvars(0, testbench_parity_generator);
+
+        data = 8'b00000000; #10; // Even parity, P = 0
+        data = 8'b10101010; #10; // Even parity, P = 0
+        data = 8'b01010101; #10; // Even parity, P = 0
+        data = 8'b11111111; #10; // Even parity, P = 0
+
+        data = 8'b00000001; #10; // Odd parity, P = 1
+        data = 8'b10101011; #10; // Odd parity, P = 1
+        data = 8'b01010100; #10; // Odd parity, P = 1
+        data = 8'b11111110; #10; // Odd parity, P = 1
+
+        $finish;
+    end
+endmodule
+```
+
+In this testbench, we apply various test vectors to the `data` input and check the output `P` to verify if the parity generator is functioning correctly. The expected outputs are commented next to each test vector.
+
+Certainly! Here are the implementations of an 8-to-1 MUX and a 3-to-8 Decoder using dataflow modeling along with their respective testbenches:
+
+## 8-to-1 MUX in Dataflow Modeling
+
+```verilog
+module mux_8to1_dataflow(input [7:0] D, input [2:0] S, output Y);
+    assign Y = (S == 3'b000) ? D[0] :
+              (S == 3'b001) ? D[1] :
+              (S == 3'b010) ? D[2] :
+              (S == 3'b011) ? D[3] :
+              (S == 3'b100) ? D[4] :
+              (S == 3'b101) ? D[5] :
+              (S == 3'b110) ? D[6] :
+                              D[7];
+endmodule
+```
+
+### 8-to-1 MUX Testbench
+
+```verilog
+module testbench_mux_8to1_dataflow();
+    reg [7:0] D;
+    reg [2:0] S;
+    wire Y;
+
+    // Instantiate the 8-to-1 MUX
+    mux_8to1_dataflow uut (D, S, Y);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("mux_8to1_dataflow.vcd");
+        $dumpvars(0, testbench_mux_8to1_dataflow);
+
+        D = 8'b00000000; S = 3'b000; #10; // Selecting input 0, Y = 0
+        D = 8'b11111111; S = 3'b001; #10; // Selecting input 1, Y = 1
+        D = 8'b10101010; S = 3'b010; #10; // Selecting input 2, Y = 0
+        D = 8'b11001100; S = 3'b011; #10; // Selecting input 3, Y = 0
+        D = 8'b01010101; S = 3'b100; #10; // Selecting input 4, Y = 0
+        D = 8'b00110011; S = 3'b101; #10; // Selecting input 5, Y = 1
+        D = 8'b00001111; S = 3'b110; #10; // Selecting input 6, Y = 1
+        D = 8'b11110000; S = 3'b111; #10; // Selecting input 7, Y = 0
+
+        $finish;
+    end
+endmodule
+```
+
+## 3-to-8 Decoder in Dataflow Modeling
+
+```verilog
+module decoder_3to8_dataflow(input [2:0] A, output [7:0] Y);
+    assign Y[0] = (A == 3'b000) ? 1'b1 : 1'b0;
+    assign Y[1] = (A == 3'b001) ? 1'b1 : 1'b0;
+    assign Y[2] = (A == 3'b010) ? 1'b1 : 1'b0;
+    assign Y[3] = (A == 3'b011) ? 1'b1 : 1'b0;
+    assign Y[4] = (A == 3'b100) ? 1'b1 : 1'b0;
+    assign Y[5] = (A == 3'b101) ? 1'b1 : 1'b0;
+    assign Y[6] = (A == 3'b110) ? 1'b1 : 1'b0;
+    assign Y[7] = (A == 3'b111) ? 1'b1 : 1'b0;
+endmodule
+```
+
+### 3-to-8 Decoder Testbench
+
+```verilog
+module testbench_decoder_3to8_dataflow();
+    reg [2:0] A;
+    wire [7:0] Y;
+
+    // Instantiate the 3-to-8 Decoder
+    decoder_3to8_dataflow uut (A, Y);
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("decoder_3to8_dataflow.vcd");
+        $dumpvars(0, testbench_decoder_3to8_dataflow);
+
+        A = 3'b000; #10; // Y = 00000001
+        A = 3'b001; #10; // Y = 00000010
+        A = 3'b010; #10; // Y = 00000100
+        A = 3'b011; #10; // Y = 00001000
+        A = 3'b100; #10; // Y = 00010000
+        A = 3'b101; #10; // Y = 00100000
+        A = 3'b110; #10; // Y = 01000000
+        A = 3'b111; #10; // Y = 10000000
+
+        $finish;
+    end
+endmodule
+```
+
+Sure! Below are implementations of different types of 4-bit counters (Up-counter, Down-counter, Up/Down-counter, and Johnson counter) using behavioral modeling, along with their respective testbenches.
+
+## 4-Bit Up-Counter
+
+```verilog
+module up_counter(input clk, input rst, output reg [3:0] count);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            count <= 4'b0000;
+        else
+            count <= count + 1;
+    end
+endmodule
+```
+
+### Up-Counter Testbench
+
+```verilog
+module testbench_up_counter();
+    reg clk, rst;
+    wire [3:0] count;
+
+    // Instantiate the up-counter
+    up_counter uut (clk, rst, count);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("up_counter.vcd");
+        $dumpvars(0, testbench_up_counter);
+
+        // Reset
+        rst = 1;
+        #10 rst = 0;
+
+        // Count for 20 clock cycles
+        repeat(20) #10;
+
+        $finish;
+    end
+endmodule
+```
+
+## 4-Bit Down-Counter
+
+```verilog
+module down_counter(input clk, input rst, output reg [3:0] count);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            count <= 4'b1111;
+        else
+            count <= count - 1;
+    end
+endmodule
+```
+
+### Down-Counter Testbench
+
+```verilog
+module testbench_down_counter();
+    reg clk, rst;
+    wire [3:0] count;
+
+    // Instantiate the down-counter
+    down_counter uut (clk, rst, count);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("down_counter.vcd");
+        $dumpvars(0, testbench_down_counter);
+
+        // Reset
+        rst = 1;
+        #10 rst = 0;
+
+        // Count for 20 clock cycles
+        repeat(20) #10;
+
+        $finish;
+    end
+endmodule
+```
+
+## 4-Bit Up/Down-Counter
+
+```verilog
+module up_down_counter(input clk, input up, input down, input rst, output reg [3:0] count);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            count <= 4'b0000;
+        else if (up)
+            count <= count + 1;
+        else if (down)
+            count <= count - 1;
+    end
+endmodule
+```
+
+### Up/Down-Counter Testbench
+
+```verilog
+module testbench_up_down_counter();
+    reg clk, up, down, rst;
+    wire [3:0] count;
+
+    // Instantiate the up/down-counter
+    up_down_counter uut (clk, up, down, rst, count);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("up_down_counter.vcd");
+        $dumpvars(0, testbench_up_down_counter);
+
+        // Reset
+        rst = 1;
+        #10 rst = 0;
+
+        // Count up for 10 clock cycles
+        up = 1;
+        repeat(10) #10;
+        up = 0;
+
+        // Count down for 10 clock cycles
+        down = 1;
+        repeat(10) #10;
+        down = 0;
+
+        $finish;
+    end
+endmodule
+```
+
+## 4-Bit Johnson Counter
+
+```verilog
+module johnson_counter(input clk, input rst, output reg [3:0] count);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            count <= 4'b0001;
+        else begin
+            count <= {count[2:0], count[3]};
+        end
+    end
+endmodule
+```
+
+### Johnson Counter Testbench
+
+```verilog
+module testbench_johnson_counter();
+    reg clk, rst;
+    wire [3:0] count;
+
+    // Instantiate the Johnson counter
+    johnson_counter uut (clk, rst, count);
+
+    // Clock generation
+    always #5 clk = ~clk;
+
+    // Apply test vectors
+    initial begin
+        $dumpfile("johnson_counter.vcd");
+        $dumpvars(0, testbench_johnson_counter);
+
+        // Reset
+        rst = 1;
+        #10 rst = 0;
+
+        // Count for 16 clock cycles
+        repeat(16) #10;
+
+        $finish;
+    end
+endmodule
+```
+
+You can save each module in separate files (e.g., `up_counter.v`, `down_counter.v`, `up_down_counter.v`, `johnson_counter.v`) 
