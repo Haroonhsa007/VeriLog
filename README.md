@@ -2,7 +2,7 @@
 # 1-bit full adder.
 ## Gate-Level Modeling
 
-```
+```verilog
 module full_adder_gate_level (input A, input B, input Cin, output Sum, output Cout);
     wire w1, w2, w3, w4, w5;
     xor gate1 (w1, A, B);
@@ -16,7 +16,7 @@ endmodule
 
 ### Gate-Level Testbench
 
-```
+```verilog
 module testbench_gate_level();
     reg A, B, Cin;
     wire Sum, Cout;
@@ -77,7 +77,7 @@ endmodule
 
 ## Behavioral Modeling
 
-```
+```verilog
 module full_adder_behavioral(input A, input B, input Cin, output Sum, output Cout);
     always @(*)
       begin
@@ -89,7 +89,7 @@ endmodule
 
 ### Behavioral Testbench
 
-```
+```verilog
 module testbench_behavioral();
     reg A, B, Cin;
     wire Sum, Cout;
@@ -115,7 +115,7 @@ endmodule
 
 # 4-bit adder implemented using 1-bit full adder modules:
 ## Gate-Level Modeling
-```
+```verilog
 module four_bit_adder_gate_level(
     input [3:0] A,
     input [3:0] B,
@@ -139,7 +139,7 @@ endmodule
 
 ### Gate-Level Testbench
 
-```
+```verilog
 module testbench_four_bit_adder_gate_level();
     reg [3:0] A, B;
     reg Cin;
@@ -185,7 +185,7 @@ endmodule
 
 ### Dataflow Testbench
 
-```
+```verilog
 module testbench_four_bit_adder_dataflow();
     reg [3:0] A, B;
     reg Cin;
@@ -211,7 +211,7 @@ endmodule
 
 ## Behavioral Modeling
 
-```
+```verilog
 module four_bit_adder_behavioral(
     input [3:0] A,
     input [3:0] B,
@@ -256,3 +256,123 @@ module testbench_four_bit_adder_behavioral();
   initial #100 $stop;
 endmodule
 ```
+
+# 4-to-1 Multiplexer (MUX) Implementation in Verilog
+```
+## Gate-Level Modeling
+
+```verilog
+module mux_gate_level(input [3:0] D, input [1:0] S, output Y);
+    wire w1, w2, w3, w4;
+
+    and gate1 (w1, D[0], ~S[0]);
+    and gate2 (w2, D[1], S[0]);
+    and gate3 (w3, D[2], ~S[1]);
+    and gate4 (w4, D[3], S[1]);
+    or  gate5 (Y, w1, w2, w3, w4);
+endmodule
+```
+
+### Gate-Level Testbench
+
+```verilog
+module testbench_mux_gate_level();
+    reg [3:0] D;
+    reg [1:0] S;
+    wire Y;
+
+    // Instantiate the MUX
+    mux_gate_level uut (D, S, Y);
+
+    // Apply test vectors
+    initial begin
+        D = 4'b0000; S = 2'b00; #10; // Select input 0
+        D = 4'b1111; S = 2'b00; #10; // Select input 0
+        D = 4'b0000; S = 2'b01; #10; // Select input 1
+        D = 4'b1111; S = 2'b01; #10; // Select input 1
+        D = 4'b0000; S = 2'b10; #10; // Select input 2
+        D = 4'b1111; S = 2'b10; #10; // Select input 2
+        D = 4'b0000; S = 2'b11; #10; // Select input 3
+        D = 4'b1111; S = 2'b11; #10; // Select input 3
+    end
+    initial #100 $stop;
+endmodule
+```
+
+## Dataflow Modeling
+
+```verilog
+module mux_dataflow(input [3:0] D, input [1:0] S, output Y);
+    assign Y = (S[1] & S[0]) ? D[3] : (S[1] & ~S[0]) ? D[2] : (~S[1] & S[0]) ? D[1] : D[0];
+    // if ? (__) : else (__)
+endmodule
+```
+
+### Dataflow Testbench
+
+```verilog
+module testbench_mux_dataflow();
+    reg [3:0] D;
+    reg [1:0] S;
+    wire Y;
+
+    // Instantiate the MUX
+    mux_dataflow uut (D, S, Y);
+
+    // Apply test vectors
+    initial begin
+        D = 4'b0000; S = 2'b00; #10; // Select input 0
+        D = 4'b1111; S = 2'b00; #10; // Select input 0
+        D = 4'b0000; S = 2'b01; #10; // Select input 1
+        D = 4'b1111; S = 2'b01; #10; // Select input 1
+        D = 4'b0000; S = 2'b10; #10; // Select input 2
+        D = 4'b1111; S = 2'b10; #10; // Select input 2
+        D = 4'b0000; S = 2'b11; #10; // Select input 3
+        D = 4'b1111; S = 2'b11; #10; // Select input 3
+    end
+    initial #100 $stop;
+endmodule
+```
+
+## Behavioral Modeling
+
+```verilog
+module mux_behavioral(input [3:0] D, input [1:0] S, output Y);
+    always @ (*) begin
+        case(S)
+            2'b00: Y = D[0];
+            2'b01: Y = D[1];
+            2'b10: Y = D[2];
+            2'b11: Y = D[3];
+            default: Y = 4'bxxxx; // Handle invalid cases
+        endcase
+    end
+endmodule
+```
+
+### Behavioral Testbench
+
+```verilog
+module testbench_mux_behavioral();
+    reg [3:0] D;
+    reg [1:0] S;
+    wire Y;
+
+    // Instantiate the MUX
+    mux_behavioral uut (D, S, Y);
+
+    // Apply test vectors
+    initial begin
+        D = 4'b0000; S = 2'b00; #10; // Select input 0
+        D = 4'b1111; S = 2'b00; #10; // Select input 0
+        D = 4'b0000; S = 2'b01; #10; // Select input 1
+        D = 4'b1111; S = 2'b01; #10; // Select input 1
+        D = 4'b0000; S = 2'b10; #10; // Select input 2
+        D = 4'b1111; S = 2'b10; #10; // Select input 2
+        D = 4'b0000; S = 2'b11; #10; // Select input 3
+        D = 4'b1111; S = 2'b11; #10; // Select input 3
+    end
+    initial #100 $stop;
+endmodule
+```
+
