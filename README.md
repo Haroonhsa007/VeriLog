@@ -81,8 +81,7 @@ endmodule
 module full_adder_behavioral(input A, input B, input Cin, output Sum, output Cout);
     always @(*)
       begin
-          Sum = A ^ B ^ Cin;
-          Cout = (A & B) | (Cin & (A ^ B));
+        {Cout, Sum} = A + B + Cin;
       end
 endmodule
 ```
